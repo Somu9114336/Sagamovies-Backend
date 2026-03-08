@@ -1,6 +1,7 @@
 package com.sagaMovies.sagamovies.service;
 
 import com.sagaMovies.sagamovies.dto.MovieDto;
+import com.sagaMovies.sagamovies.dto.MovieResponseDto;
 import com.sagaMovies.sagamovies.entity.Movie;
 import com.sagaMovies.sagamovies.repository.MovieRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,10 +45,10 @@ public class MovieService {
 
     //2️⃣ getAllMovies()
 
-    public List<MovieDto> getAllMovie() {
+    public List<MovieResponseDto> getAllMovie() {
 
         return movieRepository.findAll().stream()
-                .map(movie -> new MovieDto(
+                .map(movie -> new MovieResponseDto(
                         movie.getTitle(),
                         movie.getCast(),
                         movie.getRating(),
@@ -60,10 +61,66 @@ public class MovieService {
     }
     //3️⃣ getMovieById()
 
+    public MovieResponseDto getMovieById(long id) {
+        Movie movie = movieRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("movie not found with this id : " + id));
+
+        return new MovieResponseDto(
+                movie.getTitle(),
+                movie.getCast(),
+                movie.getRating(),
+                movie.getLanguage(),
+                movie.getSummary(),
+                movie.getReleaseYear(),
+                movie.getPosterPath(),
+                movie.getMoviePath()
+        );
+
+    }
 
     //4️⃣ deleteMovie()
+    public String deleteMovieById(Long id) {
+        Movie movie = movieRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Movie not exits"));
+        movieRepository.delete(movie);
+        return "deleted successfully";
+    }
 
 
-    //5️⃣ updateMovie()
+    public Movie updateMovie(Long id, MovieResponseDto request) {
+        Movie movie = movieRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("not found"));
+
+
+        if (request.getTitle() != null) movie.setTitle(request.getTitle());
+        if (request.getCast() != null) movie.setCast(request.getCast());
+        if (request.getLanguage() != null) movie.setLanguage(request.getLanguage());
+        if (request.getRating() != null) movie.setRating(request.getRating());
+        if (request.getSummary() != null) movie.setSummary(request.getSummary());
+        if (request.getReleaseYear() != null) movie.setReleaseYear(request.getReleaseYear());
+        if (request.getMoviePath() != null) movie.setMoviePath(request.getMoviePath());
+        if (request.getPosterPath() != null) movie.setPosterPath(request.getPosterPath());
+
+
+        return movieRepository.save(movie);
+    }
+
+    public MovieResponseDto searchMovieByTitle(String title) {
+        Movie movie = movieRepository.findByTitle(title).orElseThrow(() -> new IllegalArgumentException("Movie not found"));
+        return new MovieResponseDto(
+                movie.getTitle(),
+                movie.getCast(),
+                movie.getRating(),
+                movie.getLanguage(),
+                movie.getSummary(),
+                movie.getReleaseYear(),
+                movie.getPosterPath(),
+                movie.getMoviePath()
+        );
+    }
 
 }
+
+
+
+
+
+
+

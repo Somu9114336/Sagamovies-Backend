@@ -1,6 +1,7 @@
 package com.sagaMovies.sagamovies.controllers;
 
 import com.sagaMovies.sagamovies.dto.MovieDto;
+import com.sagaMovies.sagamovies.dto.MovieResponseDto;
 import com.sagaMovies.sagamovies.entity.Movie;
 import com.sagaMovies.sagamovies.service.MovieService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +25,37 @@ public class MoveController {
     }
 
     @GetMapping("/get")
-        public ResponseEntity<List<MovieDto>> getAllMovies(){
+        public ResponseEntity<List<MovieResponseDto>> getAllMovies(){
        return ResponseEntity.ok(movieService.getAllMovie());
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<MovieResponseDto>getMovieById(@PathVariable  Long id){
+        return  ResponseEntity.ok(movieService.getMovieById(id));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String>deleteByid(@PathVariable Long id){
+        String message= movieService.deleteMovieById(id);
+
+        return  ResponseEntity.ok(message);
+    }
+
+    @PatchMapping("/{id}")
+    public ResponseEntity<Movie> updateMovie(
+            @PathVariable Long id,
+            @RequestBody MovieResponseDto request) throws IOException {
+
+        Movie updatedMovie = movieService.updateMovie(id, request);
+        return ResponseEntity.ok(updatedMovie);
+    }
+
+    @GetMapping("/title")
+    public ResponseEntity<MovieResponseDto>geMovieByTitle(@RequestParam String title){
+        MovieResponseDto movie = movieService.searchMovieByTitle(title);
+        return ResponseEntity.ok(movie);
+
+
+    }
+
 }
