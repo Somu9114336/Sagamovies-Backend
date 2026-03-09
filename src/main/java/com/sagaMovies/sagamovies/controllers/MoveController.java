@@ -3,7 +3,9 @@ package com.sagaMovies.sagamovies.controllers;
 import com.sagaMovies.sagamovies.dto.MovieDto;
 import com.sagaMovies.sagamovies.dto.MovieResponseDto;
 import com.sagaMovies.sagamovies.entity.Movie;
+import com.sagaMovies.sagamovies.service.DownloadMovieService;
 import com.sagaMovies.sagamovies.service.MovieService;
+import org.springframework.core.io.Resource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,12 +13,16 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 import java.util.List;
 
+@CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequestMapping("/movie")
 public class MoveController {
 
     @Autowired
     private MovieService movieService;
+
+    @Autowired
+    private DownloadMovieService downloadMovieService;
 
     @PostMapping("/add")
     public ResponseEntity<Movie> addMovie(@ModelAttribute MovieDto request) throws IOException {
@@ -56,6 +62,10 @@ public class MoveController {
         return ResponseEntity.ok(movie);
 
 
+    }
+    @GetMapping("/download/{id}")
+    public ResponseEntity<Resource> downloadMovie(@PathVariable Long id) throws IOException {
+        return downloadMovieService.downloadMovie(id);
     }
 
 }

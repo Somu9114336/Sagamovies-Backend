@@ -2,7 +2,11 @@ package com.sagaMovies.sagamovies.service;
 
 import com.sagaMovies.sagamovies.dto.MovieDto;
 import com.sagaMovies.sagamovies.dto.MovieResponseDto;
+import com.sagaMovies.sagamovies.entity.Category;
+import com.sagaMovies.sagamovies.entity.Genre;
 import com.sagaMovies.sagamovies.entity.Movie;
+import com.sagaMovies.sagamovies.repository.CategoryRepository;
+import com.sagaMovies.sagamovies.repository.GenreRepository;
 import com.sagaMovies.sagamovies.repository.MovieRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,6 +22,15 @@ public class MovieService {
 
     @Autowired
     private FileStorageService fileStorageService;
+
+
+    @Autowired
+    private CategoryRepository categoryRepository;
+
+    @Autowired
+    private GenreRepository genreRepository;
+
+
 //1️⃣ addMovie()
 
     public Movie addMovie(MovieDto request) throws IOException {
@@ -40,6 +53,28 @@ public class MovieService {
         movie.setMoviePath(moviePath);
         movie.setPosterPath(posterPath);
 
+        Category category = categoryRepository
+                .findByName(request.getCategory())
+                .orElseGet(() -> {
+                    Category newCategory = new Category();
+                    newCategory.setName(request.getCategory());
+                    return categoryRepository.save(newCategory);
+                });
+
+        movie.setCategory(category);
+
+        List<Genre> genres = request.getGenres().stream()
+                .map(name -> genreRepository.findByName(name)
+                        .orElseGet(() -> {
+                            Genre newGenre = new Genre();
+                            newGenre.setName(name);
+                            return genreRepository.save(newGenre);
+                        }))
+                .toList();
+
+        movie.setGenres(genres);
+
+
         return movieRepository.save(movie);
     }
 
@@ -54,6 +89,10 @@ public class MovieService {
                         movie.getRating(),
                         movie.getLanguage(),
                         movie.getSummary(),
+                        movie.getCategory().getName(),
+                        movie.getGenres().stream()
+                                .map(Genre::getName)
+                                .toList(),
                         movie.getReleaseYear(),
                         movie.getPosterPath(),
                         movie.getMoviePath()
@@ -70,6 +109,10 @@ public class MovieService {
                 movie.getRating(),
                 movie.getLanguage(),
                 movie.getSummary(),
+                movie.getCategory().getName(),
+                movie.getGenres().stream()
+                        .map(Genre::getName)
+                        .toList(),
                 movie.getReleaseYear(),
                 movie.getPosterPath(),
                 movie.getMoviePath()
@@ -110,6 +153,10 @@ public class MovieService {
                 movie.getRating(),
                 movie.getLanguage(),
                 movie.getSummary(),
+                movie.getCategory().getName(),
+                movie.getGenres().stream()
+                        .map(Genre::getName)
+                        .toList(),
                 movie.getReleaseYear(),
                 movie.getPosterPath(),
                 movie.getMoviePath()

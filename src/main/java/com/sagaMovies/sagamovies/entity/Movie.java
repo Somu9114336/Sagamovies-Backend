@@ -3,6 +3,8 @@ package com.sagaMovies.sagamovies.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.util.List;
+
 @Entity
 @Table
 @Data
@@ -24,6 +26,18 @@ public class Movie {
     private double rating;
     @Column(length = 2000)
     private String language;
+
+    @ManyToOne
+    @JoinColumn(name = "category_id")
+    private Category category;
+
+    @ManyToMany
+    @JoinTable(
+            name = "movie_genre",
+            joinColumns = @JoinColumn(name = "movie_id"),
+            inverseJoinColumns = @JoinColumn(name = "genre_id")
+    )
+    private List<Genre> genres;
 
     private Integer releaseYear;
 
