@@ -23,17 +23,15 @@ public class MovieService {
     @Autowired
     private FileStorageService fileStorageService;
 
-
     @Autowired
     private CategoryRepository categoryRepository;
 
     @Autowired
     private GenreRepository genreRepository;
 
+    //1️⃣ addMovie()
 
-//1️⃣ addMovie()
-
-    public Movie addMovie(MovieDto request) throws IOException {
+    public MovieResponseDto addMovie(MovieDto request) throws IOException {
 
         if (movieRepository.findByTitle(request.getTitle()).isPresent()) {
             throw new RuntimeException("Movie already exists");
@@ -74,8 +72,23 @@ public class MovieService {
 
         movie.setGenres(genres);
 
+        Movie savedMovie = movieRepository.save(movie);
 
-        return movieRepository.save(movie);
+        return new MovieResponseDto(
+                savedMovie.getId(),
+                savedMovie.getTitle(),
+                savedMovie.getCast(),
+                savedMovie.getRating(),
+                savedMovie.getLanguage(),
+                savedMovie.getSummary(),
+                savedMovie.getCategory().getName(),
+                savedMovie.getGenres().stream()
+                        .map(Genre::getName)
+                        .toList(),
+                savedMovie.getReleaseYear(),
+                savedMovie.getPosterPath(),
+                savedMovie.getMoviePath()
+        );
     }
 
     //2️⃣ getAllMovies()
@@ -84,6 +97,7 @@ public class MovieService {
 
         return movieRepository.findAll().stream()
                 .map(movie -> new MovieResponseDto(
+                        movie.getId(),
                         movie.getTitle(),
                         movie.getCast(),
                         movie.getRating(),
@@ -98,12 +112,15 @@ public class MovieService {
                         movie.getMoviePath()
                 )).toList();
     }
+
     //3️⃣ getMovieById()
 
     public MovieResponseDto getMovieById(long id) {
-        Movie movie = movieRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("movie not found with this id : " + id));
+        Movie movie = movieRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("movie not found with this id : " + id));
 
         return new MovieResponseDto(
+                movie.getId(),
                 movie.getTitle(),
                 movie.getCast(),
                 movie.getRating(),
@@ -117,20 +134,23 @@ public class MovieService {
                 movie.getPosterPath(),
                 movie.getMoviePath()
         );
-
     }
 
     //4️⃣ deleteMovie()
+
     public String deleteMovieById(Long id) {
-        Movie movie = movieRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("Movie not exits"));
+        Movie movie = movieRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Movie not exits"));
         movieRepository.delete(movie);
         return "deleted successfully";
     }
 
+    //5️⃣ updateMovie()
 
-    public Movie updateMovie(Long id, MovieResponseDto request) {
-        Movie movie = movieRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("not found"));
+    public MovieResponseDto updateMovie(Long id, MovieResponseDto request) {
 
+        Movie movie = movieRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("not found"));
 
         if (request.getTitle() != null) movie.setTitle(request.getTitle());
         if (request.getCast() != null) movie.setCast(request.getCast());
@@ -141,13 +161,34 @@ public class MovieService {
         if (request.getMoviePath() != null) movie.setMoviePath(request.getMoviePath());
         if (request.getPosterPath() != null) movie.setPosterPath(request.getPosterPath());
 
+        Movie updatedMovie = movieRepository.save(movie);
 
-        return movieRepository.save(movie);
+        return new MovieResponseDto(
+                updatedMovie.getId(),
+                updatedMovie.getTitle(),
+                updatedMovie.getCast(),
+                updatedMovie.getRating(),
+                updatedMovie.getLanguage(),
+                updatedMovie.getSummary(),
+                updatedMovie.getCategory().getName(),
+                updatedMovie.getGenres().stream()
+                        .map(Genre::getName)
+                        .toList(),
+                updatedMovie.getReleaseYear(),
+                updatedMovie.getPosterPath(),
+                updatedMovie.getMoviePath()
+        );
     }
 
+    //6️⃣ searchMovieByTitle()
+
     public MovieResponseDto searchMovieByTitle(String title) {
-        Movie movie = movieRepository.findByTitle(title).orElseThrow(() -> new IllegalArgumentException("Movie not found"));
+
+        Movie movie = movieRepository.findByTitle(title)
+                .orElseThrow(() -> new IllegalArgumentException("Movie not found"));
+
         return new MovieResponseDto(
+                movie.getId(),
                 movie.getTitle(),
                 movie.getCast(),
                 movie.getRating(),
@@ -162,12 +203,4 @@ public class MovieService {
                 movie.getMoviePath()
         );
     }
-
 }
-
-
-
-
-
-
-

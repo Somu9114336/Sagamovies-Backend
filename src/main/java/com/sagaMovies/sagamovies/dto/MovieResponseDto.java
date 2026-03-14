@@ -11,6 +11,7 @@ import java.util.List;
 @NoArgsConstructor
 public class MovieResponseDto {
 
+    private Long id;
     private String title;
     private String cast;
     private Double rating;

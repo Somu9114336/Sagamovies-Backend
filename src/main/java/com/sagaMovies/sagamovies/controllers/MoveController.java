@@ -2,7 +2,6 @@ package com.sagaMovies.sagamovies.controllers;
 
 import com.sagaMovies.sagamovies.dto.MovieDto;
 import com.sagaMovies.sagamovies.dto.MovieResponseDto;
-import com.sagaMovies.sagamovies.entity.Movie;
 import com.sagaMovies.sagamovies.service.DownloadMovieService;
 import com.sagaMovies.sagamovies.service.MovieService;
 import org.springframework.core.io.Resource;
@@ -13,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 import java.util.List;
 
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:5173", "http://localhost:5174"})
 @RestController
 @RequestMapping("/movie")
 public class MoveController {
@@ -25,47 +24,54 @@ public class MoveController {
     private DownloadMovieService downloadMovieService;
 
     @PostMapping("/add")
-    public ResponseEntity<Movie> addMovie(@ModelAttribute MovieDto request) throws IOException {
-        Movie savedMovie = movieService.addMovie(request);
+    public ResponseEntity<MovieResponseDto> addMovie(@ModelAttribute MovieDto request) throws IOException {
+
+        MovieResponseDto savedMovie = movieService.addMovie(request);
+
         return ResponseEntity.ok(savedMovie);
     }
 
     @GetMapping("/get")
-        public ResponseEntity<List<MovieResponseDto>> getAllMovies(){
-       return ResponseEntity.ok(movieService.getAllMovie());
+    public ResponseEntity<List<MovieResponseDto>> getAllMovies() {
+
+        return ResponseEntity.ok(movieService.getAllMovie());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<MovieResponseDto>getMovieById(@PathVariable  Long id){
-        return  ResponseEntity.ok(movieService.getMovieById(id));
+    public ResponseEntity<MovieResponseDto> getMovieById(@PathVariable Long id) {
+
+        return ResponseEntity.ok(movieService.getMovieById(id));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String>deleteByid(@PathVariable Long id){
-        String message= movieService.deleteMovieById(id);
+    public ResponseEntity<String> deleteByid(@PathVariable Long id) {
 
-        return  ResponseEntity.ok(message);
+        String message = movieService.deleteMovieById(id);
+
+        return ResponseEntity.ok(message);
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<Movie> updateMovie(
+    public ResponseEntity<MovieResponseDto> updateMovie(
             @PathVariable Long id,
             @RequestBody MovieResponseDto request) throws IOException {
 
-        Movie updatedMovie = movieService.updateMovie(id, request);
+        MovieResponseDto updatedMovie = movieService.updateMovie(id, request);
+
         return ResponseEntity.ok(updatedMovie);
     }
 
     @GetMapping("/title")
-    public ResponseEntity<MovieResponseDto>geMovieByTitle(@RequestParam String title){
+    public ResponseEntity<MovieResponseDto> geMovieByTitle(@RequestParam String title) {
+
         MovieResponseDto movie = movieService.searchMovieByTitle(title);
+
         return ResponseEntity.ok(movie);
-
-
     }
+
     @GetMapping("/download/{id}")
     public ResponseEntity<Resource> downloadMovie(@PathVariable Long id) throws IOException {
+
         return downloadMovieService.downloadMovie(id);
     }
-
 }

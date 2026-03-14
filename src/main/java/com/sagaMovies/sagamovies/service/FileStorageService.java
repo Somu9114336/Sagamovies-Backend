@@ -30,19 +30,21 @@ public class FileStorageService {
             throw  new IllegalArgumentException("file type not supported");
         }
 
-        String name = System.currentTimeMillis() + "_" + file.getOriginalFilename();
+        String sanitizedName = originalfile.replaceAll("[^a-zA-Z0-9\\.\\-]", "_");
+        String name = System.currentTimeMillis() + "_" + sanitizedName;
 
         Path path = Paths.get(movie_DIR,name);
 
         Files.copy(file.getInputStream(), path);
 
-        return path.toString();
+        return "movies/" + name;
     }
 
     public String uploadPoster(MultipartFile file) throws IOException {
 
+
         if (file == null || file.isEmpty()) {
-            throw new IllegalArgumentException("Movie file is missing");
+            throw new IllegalArgumentException("Poster file is missing");
         }
         String originalfile= file.getOriginalFilename();
         String extension=" ";
@@ -56,13 +58,14 @@ public class FileStorageService {
         }
 
 
-        String name = System.currentTimeMillis() + "_" + file.getOriginalFilename();
+        String sanitizedName = originalfile.replaceAll("[^a-zA-Z0-9\\.\\-]", "_");
+        String name = System.currentTimeMillis() + "_" + sanitizedName;
 
         Path path = Paths.get(poster_DIR,name);
 
         Files.copy(file.getInputStream(), path);
 
-        return path.toString();
+        return "posters/" + name;
     }
 }
 
