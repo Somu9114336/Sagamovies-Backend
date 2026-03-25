@@ -8,6 +8,8 @@ import com.sagaMovies.sagamovies.entity.Movie;
 import com.sagaMovies.sagamovies.repository.CategoryRepository;
 import com.sagaMovies.sagamovies.repository.GenreRepository;
 import com.sagaMovies.sagamovies.repository.MovieRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +18,8 @@ import java.util.List;
 
 @Service
 public class MovieService {
+
+    private static final Logger log = LoggerFactory.getLogger(MovieService.class);
 
     @Autowired
     private MovieRepository movieRepository;
@@ -29,16 +33,23 @@ public class MovieService {
     @Autowired
     private GenreRepository genreRepository;
 
-    //1️⃣ addMovie()
 
     public MovieResponseDto addMovie(MovieDto request) throws IOException {
+        log.info("addMovie start: title='{}', rating={}, releaseYear={}, category='{}'",
+                request.getTitle(), request.getRating(), request.getReleaseYear(), request.getCategory());
 
         if (movieRepository.findByTitle(request.getTitle()).isPresent()) {
+            log.warn("addMovie rejected because title already exists: '{}'", request.getTitle());
             throw new RuntimeException("Movie already exists");
         }
 
+        log.info("Uploading poster for title='{}'", request.getTitle());
         String posterPath = fileStorageService.uploadPoster(request.getPoster());
+        log.info("Poster uploaded for title='{}' to {}", request.getTitle(), posterPath);
+
+        log.info("Uploading movie file for title='{}'", request.getTitle());
         String moviePath = fileStorageService.uploadMovie(request.getMovie());
+        log.info("Movie uploaded for title='{}' to {}", request.getTitle(), moviePath);
 
         Movie movie = new Movie();
 
@@ -54,6 +65,7 @@ public class MovieService {
         Category category = categoryRepository
                 .findByName(request.getCategory())
                 .orElseGet(() -> {
+                    log.info("Creating new category '{}'", request.getCategory());
                     Category newCategory = new Category();
                     newCategory.setName(request.getCategory());
                     return categoryRepository.save(newCategory);
@@ -64,6 +76,7 @@ public class MovieService {
         List<Genre> genres = request.getGenres().stream()
                 .map(name -> genreRepository.findByName(name)
                         .orElseGet(() -> {
+                            log.info("Creating new genre '{}'", name);
                             Genre newGenre = new Genre();
                             newGenre.setName(name);
                             return genreRepository.save(newGenre);
@@ -73,6 +86,7 @@ public class MovieService {
         movie.setGenres(genres);
 
         Movie savedMovie = movieRepository.save(movie);
+        log.info("Movie entity saved: id={}, title='{}'", savedMovie.getId(), savedMovie.getTitle());
 
         return new MovieResponseDto(
                 savedMovie.getId(),
@@ -91,7 +105,6 @@ public class MovieService {
         );
     }
 
-    //2️⃣ getAllMovies()
 
     public List<MovieResponseDto> getAllMovie() {
 
@@ -113,7 +126,6 @@ public class MovieService {
                 )).toList();
     }
 
-    //3️⃣ getMovieById()
 
     public MovieResponseDto getMovieById(long id) {
         Movie movie = movieRepository.findById(id)
@@ -136,7 +148,6 @@ public class MovieService {
         );
     }
 
-    //4️⃣ deleteMovie()
 
     public String deleteMovieById(Long id) {
         Movie movie = movieRepository.findById(id)
@@ -145,9 +156,8 @@ public class MovieService {
         return "deleted successfully";
     }
 
-    //5️⃣ updateMovie()
 
-    public MovieResponseDto updateMovie(Long id, MovieResponseDto request) {
+    public MovieResponseDto updateMovie(Long id, MovieDto request) throws IOException {
 
         Movie movie = movieRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("not found"));
@@ -158,8 +168,44 @@ public class MovieService {
         if (request.getRating() != null) movie.setRating(request.getRating());
         if (request.getSummary() != null) movie.setSummary(request.getSummary());
         if (request.getReleaseYear() != null) movie.setReleaseYear(request.getReleaseYear());
-        if (request.getMoviePath() != null) movie.setMoviePath(request.getMoviePath());
-        if (request.getPosterPath() != null) movie.setPosterPath(request.getPosterPath());
+
+        if (request.getCategory() != null && !request.getCategory().isBlank()) {
+            Category category = categoryRepository
+                    .findByName(request.getCategory())
+                    .orElseGet(() -> {
+                        log.info("Creating new category '{}' during update", request.getCategory());
+                        Category newCategory = new Category();
+                        newCategory.setName(request.getCategory());
+                        return categoryRepository.save(newCategory);
+                    });
+
+            movie.setCategory(category);
+        }
+
+        if (request.getGenres() != null && !request.getGenres().isEmpty()) {
+            List<Genre> genres = request.getGenres().stream()
+                    .map(String::trim)
+                    .filter(name -> !name.isBlank())
+                    .distinct()
+                    .map(name -> genreRepository.findByName(name)
+                            .orElseGet(() -> {
+                                log.info("Creating new genre '{}' during update", name);
+                                Genre newGenre = new Genre();
+                                newGenre.setName(name);
+                                return genreRepository.save(newGenre);
+                            }))
+                    .toList();
+
+            movie.setGenres(genres);
+        }
+
+        if (request.getPoster() != null && !request.getPoster().isEmpty()) {
+            movie.setPosterPath(fileStorageService.uploadPoster(request.getPoster()));
+        }
+
+        if (request.getMovie() != null && !request.getMovie().isEmpty()) {
+            movie.setMoviePath(fileStorageService.uploadMovie(request.getMovie()));
+        }
 
         Movie updatedMovie = movieRepository.save(movie);
 
@@ -180,7 +226,6 @@ public class MovieService {
         );
     }
 
-    //6️⃣ searchMovieByTitle()
 
     public MovieResponseDto searchMovieByTitle(String title) {
 
@@ -204,3 +249,4 @@ public class MovieService {
         );
     }
 }
+

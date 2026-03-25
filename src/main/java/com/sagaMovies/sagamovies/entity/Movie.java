@@ -17,10 +17,10 @@ public class Movie {
     @Column(nullable = false)
     private String title;
 
-    @Column(length = 2000)
+    @Column(length = 3000)
     private String summary;
 
-    @Column(length = 2000)
+    @Column(length = 3000)
     private String cast;
 
     private double rating;

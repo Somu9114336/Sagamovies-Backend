@@ -1,24 +1,32 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import AdminLayout from './layouts/AdminLayout';
-import Dashboard from './pages/Dashboard';
-import AddMovie from './pages/AddMovie';
-import ShowAllMovies from './pages/ShowAllMovies';
-import EditMovie from './pages/EditMovie';
-import DeleteMovie from './pages/DeleteMovie';
+import { Navigate, Route, Routes } from 'react-router-dom';
+import ProtectedRoute from './components/ProtectedRoute';
+import DashboardLayout from './components/layout/DashboardLayout';
+import AddMoviePage from './pages/AddMoviePage';
+import DashboardPage from './pages/DashboardPage';
+import EditMoviePage from './pages/EditMoviePage';
+import LoginPage from './pages/LoginPage';
+import MoviesPage from './pages/MoviesPage';
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        <Route path="/" element={<AdminLayout />}>
-          <Route index element={<Dashboard />} />
-          <Route path="add-movie" element={<AddMovie />} />
-          <Route path="show-movies" element={<ShowAllMovies />} />
-          <Route path="edit-movie" element={<EditMovie />} />
-          <Route path="delete-movie" element={<DeleteMovie />} />
-        </Route>
-      </Routes>
-    </Router>
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route
+        path="/"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route index element={<Navigate to="/dashboard" replace />} />
+        <Route path="dashboard" element={<DashboardPage />} />
+        <Route path="movies" element={<MoviesPage />} />
+        <Route path="movies/add" element={<AddMoviePage />} />
+        <Route path="movies/:id/edit" element={<EditMoviePage />} />
+      </Route>
+      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+    </Routes>
   );
 }
 

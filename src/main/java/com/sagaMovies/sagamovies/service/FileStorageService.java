@@ -1,5 +1,7 @@
 package com.sagaMovies.sagamovies.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -10,6 +12,8 @@ import java.nio.file.Paths;
 
 @Service
 public class FileStorageService {
+
+    private static final Logger log = LoggerFactory.getLogger(FileStorageService.class);
 
     String movie_DIR = "C:\\Downloads\\movies";
     String poster_DIR = "C:\\Downloads\\poster";
@@ -26,6 +30,9 @@ public class FileStorageService {
             extension=originalfile.substring(i+1).toLowerCase();
         }
 
+        log.info("uploadMovie called: originalFile='{}', size={} bytes, contentType='{}'",
+                originalfile, file.getSize(), file.getContentType());
+
         if(!extension.matches("mp4|mkv|avi")){
             throw  new IllegalArgumentException("file type not supported");
         }
@@ -34,8 +41,10 @@ public class FileStorageService {
         String name = System.currentTimeMillis() + "_" + sanitizedName;
 
         Path path = Paths.get(movie_DIR,name);
+        log.info("Writing movie file to {}", path);
 
         Files.copy(file.getInputStream(), path);
+        log.info("Movie file write completed: {}", path);
 
         return "movies/" + name;
     }
@@ -53,6 +62,9 @@ public class FileStorageService {
             extension=originalfile.substring(i+1).toLowerCase();
         }
 
+        log.info("uploadPoster called: originalFile='{}', size={} bytes, contentType='{}'",
+                originalfile, file.getSize(), file.getContentType());
+
         if(!extension.matches("jpg|jpeg|png")){
             throw  new IllegalArgumentException("file type not supported");
         }
@@ -62,10 +74,11 @@ public class FileStorageService {
         String name = System.currentTimeMillis() + "_" + sanitizedName;
 
         Path path = Paths.get(poster_DIR,name);
+        log.info("Writing poster file to {}", path);
 
         Files.copy(file.getInputStream(), path);
+        log.info("Poster file write completed: {}", path);
 
         return "posters/" + name;
     }
 }
-
